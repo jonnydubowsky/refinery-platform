@@ -115,6 +115,16 @@ def make_template(config, config_yaml):
         open('bootstrap.sh').read(),
         open('aws.sh').read())
 
+    user_data_script_docker = functions.join(
+        "",
+        "#!/bin/sh\n",
+        # "CONFIG_YAML=", base64.b64encode(config_yaml), "\n",
+        # "CONFIG_JSON=", base64.b64encode(json.dumps(config)), "\n",
+        # "AWS_DEFAULT_REGION=", functions.ref("AWS::Region"), "\n",
+        "\n",
+        open('bootstrap.sh').read(),
+        open('aws-docker.sh').read())
+
     cft = core.CloudFormationTemplate(description="Refinery Platform main")
 
     # This parameter tags the EC2 instances, and is intended to be used
@@ -207,9 +217,11 @@ def make_template(config, config_yaml):
     cft.resources.ec2_instance_docker = core.Resource(
         'WebInstance', 'AWS::EC2::Instance',
         core.Properties({
-            'ImageId': 'ami-d05e75b8',  # TODO
+            # https://cloud-images.ubuntu.com/locator/
+            # us-east-1 17.04 amd64 hvm-ssd
+            'ImageId': 'ami-5cd4a126',
             'InstanceType': 't2.nano',
-            'UserData': functions.base64(user_data_script),  # TODO
+            'UserData': functions.base64(user_data_script_docker),
             'KeyName': config['KEY_NAME'],  # TODO
             'IamInstanceProfile': functions.ref('WebInstanceProfile'),  # TODO
             'Monitoring': True,
