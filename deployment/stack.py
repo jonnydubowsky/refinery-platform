@@ -222,8 +222,9 @@ def make_template(config, config_yaml):
             'ImageId': 'ami-5cd4a126',
             'InstanceType': 't2.nano',
             'UserData': functions.base64(user_data_script_docker),
-            'KeyName': config['KEY_NAME'],  # TODO
-            'IamInstanceProfile': functions.ref('WebInstanceProfile'),  # TODO
+            'KeyName': config['KEY_NAME'],
+            # TODO?: set to "id_rsa" in config.yml
+            'IamInstanceProfile': functions.ref('DockerInstanceProfile'),
             'Monitoring': True,
             'SecurityGroups': [functions.ref("InstanceSecurityGroup")],  # TODO
             'Tags': instance_tags,  # TODO
@@ -246,6 +247,16 @@ def make_template(config, config_yaml):
             'Path': '/',
             'Roles': [
               functions.ref('WebInstanceRole')
+            ]
+        })
+    )
+
+    cft.resources.instance_profile_docker = core.Resource(
+        'DockerInstanceProfile', 'AWS::IAM::InstanceProfile',
+        core.Properties({
+            'Path': '/',
+            'Roles': [
+              functions.ref('DockerInstanceRole')
             ]
         })
     )
@@ -372,6 +383,83 @@ def make_template(config, config_yaml):
                         ]
                     }
                 }
+            ]
+        })
+    )
+
+    cft.resources.docker_role = core.Resource(
+        'DockerInstanceRole', 'AWS::IAM::Role',
+        core.Properties({
+            # http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html#cfn-iam-role-templateexamples
+            "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [{
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Service": ["ec2.amazonaws.com"]
+                    },
+                    "Action": ["sts:AssumeRole"]
+                }]
+            },
+            'ManagedPolicyArns': [
+                'arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess'
+                # TODO: Not sure we need even this?
+            ],
+            'Path': '/',
+            'Policies': [
+                # TODO: Deleted others, but maybe these are still applicable?
+                # {
+                #     'PolicyName': "CreateAccessKey",
+                #     'PolicyDocument': {
+                #         "Version": "2012-10-17",
+                #         "Statement": [
+                #             {
+                #                 "Effect": "Allow",
+                #                 "Action": [
+                #                     "iam:CreateAccessKey"
+                #                 ],
+                #                 "Resource": [
+                #                     "*"
+                #                 ]
+                #             }
+                #         ]
+                #     },
+                # },
+                # {
+                #     "PolicyName": "CognitoAccess",
+                #     "PolicyDocument": {
+                #         "Version": "2012-10-17",
+                #         "Statement": [
+                #             {
+                #                 "Effect": "Allow",
+                #                 "Action": [
+                #                     "cognito-identity:ListIdentityPools",
+                #                 ],
+                #                 "Resource": "arn:aws:cognito-identity:*"
+                #             },
+                #             {
+                #                 "Effect": "Allow",
+                #                 "Action": [
+                #                     "cognito-identity:"
+                #                     "GetOpenIdTokenForDeveloperIdentity"
+                #                 ],
+                #                 "Resource": {
+                #                     "Fn::Sub": [
+                #                         "arn:aws:cognito-identity:"
+                #                         "${AWS::Region}:${AWS::AccountId}:"
+                #                         "identitypool/${PoolId}",
+                #                         {
+                #                             "PoolId":
+                #                                 config[
+                #                                     'COGNITO_IDENTITY_POOL_ID'
+                #                                 ]
+                #                         }
+                #                     ]
+                #                 }
+                #             }
+                #         ]
+                #     }
+                # }
             ]
         })
     )
