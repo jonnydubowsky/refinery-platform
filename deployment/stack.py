@@ -195,14 +195,37 @@ def make_template(config, config_yaml):
                 {
                     'DeviceName': '/dev/sda1',
                     'Ebs': {
-                        # Was 8G; HiGlass is 2.5G; Must be an integer
-                        'VolumeSize': '11',
+                        'VolumeSize': '8',
                         'VolumeType': 'gp2',
                     }
                 }
             ],
         }),
         core.DependsOn(['RDSInstance']),
+    )
+
+    cft.resources.ec2_instance_docker = core.Resource(
+        'WebInstance', 'AWS::EC2::Instance',
+        core.Properties({
+            'ImageId': 'ami-d05e75b8',  # TODO
+            'InstanceType': 't2.nano',
+            'UserData': functions.base64(user_data_script),  # TODO
+            'KeyName': config['KEY_NAME'],  # TODO
+            'IamInstanceProfile': functions.ref('WebInstanceProfile'),  # TODO
+            'Monitoring': True,
+            'SecurityGroups': [functions.ref("InstanceSecurityGroup")],  # TODO
+            'Tags': instance_tags,  # TODO
+            'BlockDeviceMappings': [
+                {
+                    'DeviceName': '/dev/sda1',
+                    'Ebs': {
+                        # HiGlass is 2.5G; Must be an integer
+                        'VolumeSize': '4',
+                        'VolumeType': 'gp2',
+                    }
+                }
+            ],
+        })
     )
 
     cft.resources.instance_profile = core.Resource(
