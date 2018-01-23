@@ -4,6 +4,9 @@ mod 'puppet/nodejs', '2.1.0'
 mod 'puppetlabs-apache', '1.11.0'
 mod 'puppetlabs/apt', '2.3.0'
 mod 'puppetlabs/docker_platform', '2.2.1'
+# TODO: Multiple Puppetfiles? Remove docker from main?
+# But on http://librarian-puppet.com/ I don't see an option
+# for specifying a non-default Puppetfile.
 mod 'puppetlabs/limits', '0.1.0'
 mod 'puppetlabs/lvm', '0.7.0'
 mod 'puppetlabs/postgresql', '4.9.0'
